@@ -8,36 +8,48 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
 <style>
+<style>
 body { font-family: Arial; background:#111; color:#fff; padding:20px; }
 .box { max-width:720px; margin:auto; position:relative; }
 input { width:100%; padding:15px; font-size:18px; border-radius:8px; border:none; }
 button { width:100%; padding:15px; margin-top:10px; font-size:18px; border-radius:8px; border:none; background:#00c853; color:#fff; }
 #result { margin-top:15px; padding:15px; background:#222; border-radius:10px; }
+
+video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1000;
+}
+
 #scanZone {
   position: fixed;
-  top:45%;
-  left:10%;
-  width:80%;
-  height:15%;
-  border:3px solid #00ff00;
-  display:none;
+  top: 18%;
+  left: 8%;
+  width: 84%;
+  height: 28%;
+  border: 4px solid #00ff00;
+  border-radius: 14px;
+  display: none;
+  z-index: 9999;
+  box-sizing: border-box;
+  pointer-events: none;
 }
+
 #infoMessage {
-  position:fixed;
-  top:10px;
-  left:0;
-  width:100%;
-  text-align:center;
-  font-size:18px;
+  position: fixed;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 10000;
+  font-size: 18px;
+  font-weight: bold;
 }
-video {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+</style>
 </style>
 </head>
 
