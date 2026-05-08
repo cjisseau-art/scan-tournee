@@ -244,58 +244,94 @@ function cropScanZoneFromVideo(video, scanZone) {
 }
 
 async function startScan() {
-  const scanZone = document.getElementById("scanZone");
-  const infoMessage = document.getElementById("infoMessage");
-  const resultBox = document.getElementById("result");
-  const box = document.querySelector(".box");
 
   try {
-    resultBox.className = "";
-    resultBox.innerHTML = "Ouverture caméra...";
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false
-    });
 
     const video = document.createElement("video");
-    video.srcObject = stream;
+    video.setAttribute("autoplay", true);
     video.setAttribute("playsinline", true);
-    video.muted = true;
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "environment"
+      }
+    });
+
+    video.srcObject = stream;
     document.body.appendChild(video);
+
     await video.play();
 
-    box.style.display = "none";
+    document.querySelector(".box").style.display = "none";
+
+    const scanZone = document.getElementById("scanZone");
     scanZone.style.display = "block";
-    infoMessage.style.display = "block";
-    infoMessage.innerText = "📸 Cadre l'adresse dans le rectangle vert";
+
+    const info = document.getElementById("infoMessage");
+    info.style.display = "block";
+    info.innerText = "📸 Scan dans 3 secondes";
 
     setTimeout(async () => {
-      const canvas = cropScanZoneFromVideo(video, scanZone);
+
+      info.innerText = "🔍 Analyse OCR...";
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const ctx = canvas.getContext("2d");
+
+      ctx.filter = "grayscale(100%) contrast(220%) brightness(120%)";
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       stream.getTracks().forEach(track => track.stop());
+
       video.remove();
+
+      document.querySelector(".box").style.display = "block";
+
       scanZone.style.display = "none";
-      infoMessage.innerText = "🔍 Lecture de l'adresse...";
-      box.style.display = "block";
 
-      const imageData = canvas.toDataURL("image/png");
-      const ocr = await Tesseract.recognize(imageData, "fra", {
-        tessedit_pageseg_mode: "6"
-      });
+      const image = canvas.toDataURL("image/png");
 
-      const raw = (ocr.data.text || "").trim();
-      const extractedAddress = extractAddressFromOcr(raw);
+      const resultOCR = await Tesseract.recognize(image, "fra");
 
-      document.getElementById("address").value = extractedAddress;
-      infoMessage.style.display = "none";
+      const raw = resultOCR.data.text.toUpperCase().split("\n");
+
+      let address = "";
+
+      for (let i = 0; i < raw.length; i++) {
+
+        if (/\d{5}/.test(raw[i])) {
+
+          const cpVille = raw[i];
+          const rue = raw[i - 1] || "";
+
+          address = rue + " " + cpVille;
+
+          break;
+        }
+      }
+
+      if (!address) {
+        address = raw.join(" ");
+      }
+
+      document.getElementById("address").value = address;
+
+      info.style.display = "none";
+
       findTour();
+
     }, 3000);
+
   } catch (err) {
-    scanZone.style.display = "none";
-    infoMessage.style.display = "none";
-    if (box) box.style.display = "block";
-    alert("Erreur caméra : " + err.message);
+
+    alert("Erreur scan : " + err.message);
+
+  }
+}
   }
 }
 
